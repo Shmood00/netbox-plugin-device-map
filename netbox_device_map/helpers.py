@@ -10,10 +10,15 @@ from netbox.settings import VERSION
 
 from .settings import plugin_settings
 
-
+def sanitize_version(ver):
+    return ver.split("-")[0]
 
 LOCATION_CF_NAME = plugin_settings['device_geolocation_cf']
-NETBOX_VERSION = settings.RELEASE.full_version
+
+
+
+
+NETBOX_VERSION = sanitize_version(settings.RELEASE.full_version)
 LatLon = tuple[float, float]
 
 
