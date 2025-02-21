@@ -7,12 +7,12 @@ let default_marker_icon = {
   shadowBlur: 1.5
 }
 let marker_icon_configs = {
-  'access-switch': Object.assign({color: "#2da652"}, default_marker_icon),
-  'core-switch': Object.assign({color: "#d30b0b"}, default_marker_icon),
-  'distribution-switch': Object.assign({color: "#277fca"}, default_marker_icon),
-  olt: Object.assign({color: "#c5ba26"}, default_marker_icon),
-  router: Object.assign({color: "#26A69A"}, default_marker_icon),
-  wifi: Object.assign({color: "#8111ea"}, default_marker_icon)
+  'access-switch': Object.assign({ color: "#2da652" }, default_marker_icon),
+  'core-switch': Object.assign({ color: "#d30b0b" }, default_marker_icon),
+  'distribution-switch': Object.assign({ color: "#277fca" }, default_marker_icon),
+  olt: Object.assign({ color: "#c5ba26" }, default_marker_icon),
+  router: Object.assign({ color: "#26A69A" }, default_marker_icon),
+  wifi: Object.assign({ color: "#8111ea" }, default_marker_icon)
 }
 
 const map_data = JSON.parse(document.getElementById('map-data').textContent)
@@ -22,7 +22,7 @@ let geomap = L.map(map_data.map_id,
     crs: L.CRS[map_data.crs],
     layers: [L.tileLayer(map_data.tiles.url_template, map_data.tiles.options)],
     fullscreenControl: true,
-    fullscreenControlOptions: {position: 'topright'}
+    fullscreenControlOptions: { position: 'topright' }
   }
 )
 geomap.attributionControl.setPrefix(`<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a>`)
@@ -38,7 +38,7 @@ let bounds = new L.LatLngBounds()
 
 // Preparing to place markers with the same coordinates in clusters
 let markers = {}
-map_data.markers.forEach(function(entry) {
+map_data.markers.forEach(function (entry) {
   let key = entry.position.toString()
   if (key in markers) {
     markers[key].push(entry)
@@ -56,7 +56,7 @@ for (let key in markers) {
     } else {
       iconOptions = default_marker_icon
     }
-    let markerObj = L.marker(marker_data.position, {icon: L.divIcon.svgIcon(iconOptions), device: marker_data.device})
+    let markerObj = L.marker(marker_data.position, { icon: L.divIcon.svgIcon(iconOptions), device: marker_data.device })
       .bindTooltip(`${marker_data.device.name}<br><span class="text-muted">${marker_data.device.role}</span>`)
     markerObj.on('click', function (event) {
       let device = event.target.options.device
@@ -70,29 +70,51 @@ for (let key in markers) {
         sidebar.show()
         fetch(`connected-cpe/${device.id}?vlan=${map_data.vlan}`)
           .then(response => response.json()).then(
-          function (response) {
-            if (response.status === true) {
-              document.querySelector('.sidebar-device-type').innerHTML = response.device_type
-              let cpe_list = document.querySelector('.sidebar-cpe-list')
-              cpe_list.innerHTML = ""
-              if (response.cpe_devices?.length) {
-                cpe_list.innerHTML = `<div class="mb-2">Connected CPEs in the selected VLAN:</div>`
-                let ul = document.createElement('ul')
-                ul.setAttribute('class', 'mb-0')
-                cpe_list.appendChild(ul)
-                for (let cpe_device of response.cpe_devices) {
-                  let li = document.createElement('li');
-                  li.innerHTML = `<a href="${cpe_device.url}" target="_blank">${cpe_device.name}</a>
-                                    <span class="separator">·</span>
-                                    <span class="text-muted">${cpe_device.comments}</span>`
-                  ul.appendChild(li)
+            function (response) {
+              //console.log(response)
+              //This is where device info is placed into side bar pop up when marker is clicked on
+              if (response.status === true) {
+                document.querySelector('.sidebar-device-type').innerHTML = response.device_type;
+                let cpe_list = document.querySelector('.sidebar-cpe-list');
+                cpe_list.innerHTML = ""; // Clear the list initially
+
+                // Connected CPE devices
+                if (response.cpe_devices?.length) {
+                  cpe_list.innerHTML += `<hr /><div class="mb-2">Physically Connected CPEs in the selected VLAN:</div>`;
+                  let ul = document.createElement('ul');
+                  ul.setAttribute('class', 'mb-0');
+                  cpe_list.appendChild(ul);
+                  for (let cpe_device of response.cpe_devices) {
+                    let li = document.createElement('li');
+                    li.innerHTML = `<a href="${cpe_device.url}" target="_blank">${cpe_device.name}</a>
+                                        <span class="separator">·</span>
+                                        <span class="text-muted">${cpe_device.comments}</span>`;
+                    ul.appendChild(li);
+                  }
                 }
-              } else {
-                cpe_list.innerHTML = "<i>There are no connected CPEs in the selected VLAN</i>"
+
+                // Wireless connected CPE devices
+                if (response.wl_connected?.length) {
+                  cpe_list.innerHTML += `<hr /><div class="mb-2">Wireless Connected CPEs in the selected VLAN:</div>`;
+                  let ul = document.createElement('ul');
+                  ul.setAttribute('class', 'mb-0');
+                  cpe_list.appendChild(ul);
+                  for (let cpe_device of response.wl_connected) {
+                    let li = document.createElement('li');
+                    li.innerHTML = `<a href="${cpe_device.url}" target="_blank">${cpe_device.name}</a>
+                                        <span class="separator">·</span>
+                                        <span class="text-muted">${cpe_device.comments}</span>`;
+                    ul.appendChild(li);
+                  }
+                }
+
+                // If both lists are empty, show a message
+                if (!response.cpe_devices?.length && !response.wl_connected?.length) {
+                  cpe_list.innerHTML = "<i>There are no connected CPEs in the selected VLAN</i>";
+                }
               }
             }
-          }
-        )
+          )
       }
     })
     bounds.extend(marker_data.position)
@@ -103,13 +125,17 @@ for (let key in markers) {
   }
 }
 
-const normalLineStyle = {weight: 3, color: '#3388ff'}
-const boldLineStyle ={weight: 5, color:'#0c10ff'};
+const normalLineStyle = { weight: 3, color: '#3388ff' }
+const boldLineStyle = { weight: 5, color: '#0c10ff' };
 
+// Print lines on map between connected devices
 for (let connection of map_data.connections) {
-  let line = L.polyline(connection, normalLineStyle).addTo(geomap)
-  line.on('mouseover', function () {this.setStyle(boldLineStyle); this.bringToFront()})
-  line.on('mouseout', function () {this.setStyle(normalLineStyle)})
+  //console.log(connection)
+  let line_style = connection.style == "dashed" ? [10, 10] : [];
+  let line = L.polyline([connection.start, connection.end], { dashArray: line_style }).addTo(geomap)
+  //let line = L.polyline(connection, normalLineStyle).addTo(geomap)
+  line.on('mouseover', function () { this.setStyle(boldLineStyle); this.bringToFront() })
+  line.on('mouseout', function () { this.setStyle(normalLineStyle) })
 }
 
 if (bounds.isValid()) {

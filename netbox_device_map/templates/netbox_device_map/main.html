@@ -68,10 +68,12 @@
                 </div>
                 <div id="{{ map_data.map_id }}" style="height: 700px"></div>
                 <div id="map-sidebar">
+                    
                     <div class="h3 sidebar-device-name"></div>
                     <div class="h6 sidebar-device-type"></div>
                     <div class="h5 sidebar-device-role"></div>
                     <div class="sidebar-cpe-list"></div>
+                    
                 </div>
                 {{ map_data|json_script:"map-data" }}
                 <script src="{% static 'netbox_device_map/js/map.js' %}"></script>
