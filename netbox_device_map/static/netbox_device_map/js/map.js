@@ -80,7 +80,7 @@ for (let key in markers) {
 
                 // Connected CPE devices
                 if (response.cpe_devices?.length) {
-                  cpe_list.innerHTML += `<hr /><div class="mb-2">Physically Connected CPEs in the selected VLAN:</div>`;
+                  cpe_list.innerHTML += `<hr /><div class="mb-2">Physically Connected devices in the selected VLAN:</div>`;
                   let ul = document.createElement('ul');
                   ul.setAttribute('class', 'mb-0');
                   cpe_list.appendChild(ul);
@@ -95,7 +95,7 @@ for (let key in markers) {
 
                 // Wireless connected CPE devices
                 if (response.wl_connected?.length) {
-                  cpe_list.innerHTML += `<hr /><div class="mb-2">Wireless Connected CPEs in the selected VLAN:</div>`;
+                  cpe_list.innerHTML += `<hr /><div class="mb-2">Wireless Connected devices in the selected VLAN:</div>`;
                   let ul = document.createElement('ul');
                   ul.setAttribute('class', 'mb-0');
                   cpe_list.appendChild(ul);
@@ -110,7 +110,7 @@ for (let key in markers) {
 
                 // If both lists are empty, show a message
                 if (!response.cpe_devices?.length && !response.wl_connected?.length) {
-                  cpe_list.innerHTML = "<i>There are no connected CPEs in the selected VLAN</i>";
+                  cpe_list.innerHTML = "<i>There are no connected devices in the selected VLAN</i>";
                 }
               }
             }
