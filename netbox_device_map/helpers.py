@@ -10,6 +10,7 @@ from netbox.settings import VERSION
 
 from .settings import plugin_settings
 
+""" This is used to ensure there's no versioning errors with Docker """
 def sanitize_version(ver):
     return ver.split("-")[0]
 
